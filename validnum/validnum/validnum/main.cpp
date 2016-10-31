@@ -4,6 +4,13 @@
 #include <vector>
 #include <set>
 using namespace std;
+enum EnumChaType
+{
+    EnumChaType_Invalid = 129,
+    EnumChaType_Number,
+    EnumChaType_Number_Except0,
+};
+
 class DFA
 {
 public:
@@ -19,12 +26,12 @@ public:
 
     ~DFA()
     {
-        vector<char> emptyvec;
+        vector<int> emptyvec;
         transitions.swap(emptyvec);
         accepts.clear();
     }
 
-    void AddTrans(int i, int j, char c)
+    void AddTrans(int i, int j, int c)
     {
         int index = i * this->statenum + j;
         if (index >= 0 && index < transitions.size())
@@ -33,7 +40,17 @@ public:
         }
     }
 
-    int GetTrans(int i, char c)
+    int Convert(int c)
+    {
+        if (c >= '0' && c <= '9')
+        {
+            return EnumChaType_Number;
+        }
+
+        return c;
+    }
+
+    int GetTrans(int i, int c)
     {
         int startindex = i * statenum;
         for (int i = 0; i < statenum; ++i)
@@ -67,8 +84,13 @@ public:
             auto tmpstate = GetTrans(curstate, c);
             if (tmpstate == INVALID_STATE)
             {
+                tmpstate = GetTrans(curstate, Convert(c));
+            }
+            if (tmpstate == INVALID_STATE)
+            {
                 return false;
             }
+
             curstate = tmpstate;
         }
 
@@ -111,7 +133,7 @@ public:
         return ret;
     }
     int statenum;
-    vector<char> transitions;
+    vector<int> transitions;
     set<int> accepts;
     const int INVALID_STATE = -1;
     const char INVALID_CHAR = -128;
@@ -125,10 +147,11 @@ public:
     {
         static bool initialized = false;
         static DFA normalnumber(20);
-        static  DFA realnumber(10);
+        static  DFA realnumber(6);
         static  DFA scinumber(10);
         if (!initialized)
         {
+            //normal number dfa
             for (int i = 1; i <= 9; ++i)
             {
                 normalnumber.AddTrans(0, i, '0' + i);
@@ -144,10 +167,38 @@ public:
                 }
             }
 
+
+            //real number dfa
+            realnumber.AddTrans(0, 1, EnumChaType_Number);
+            realnumber.AddTrans(1, 2, EnumChaType_Number);
+            realnumber.AddTrans(2, 2, EnumChaType_Number);
+            realnumber.AddTrans(3, 4, EnumChaType_Number);
+            realnumber.AddTrans(4, 5, EnumChaType_Number);
+            realnumber.AddTrans(5, 5, EnumChaType_Number);
+            realnumber.AddTrans(1, 3, '.');
+            realnumber.AddTrans(2, 3, '.');
+            realnumber.MarkAccept(4);
+            realnumber.MarkAccept(5);
+
+            //sci number dfa
+            scinumber.AddTrans(0, 1, EnumChaType_Number);
+            scinumber.AddTrans(1, 2, EnumChaType_Number);
+            scinumber.AddTrans(2, 2, EnumChaType_Number);
+            scinumber.AddTrans(3, 4, EnumChaType_Number);
+            scinumber.AddTrans(4, 5, EnumChaType_Number);
+            scinumber.AddTrans(5, 5, EnumChaType_Number);
+            scinumber.AddTrans(1, 3, 'e');
+            scinumber.AddTrans(2, 3, 'e');
+            scinumber.MarkAccept(4);
+            scinumber.MarkAccept(5);
+
             initialized = true;
         }
 
-        if (normalnumber.Run(s) || realnumber.Run(s) || scinumber.Run(s))
+        bool isnormalnumber = normalnumber.Run(s);
+        bool isrealnumber = realnumber.Run(s);
+        bool isscinumber = scinumber.Run(s);
+        if (isnormalnumber || isrealnumber || isscinumber)
         {
             return true;
         }
@@ -160,8 +211,16 @@ public:
 int main()
 {
     Solution s;
-    string sstr = "0123456";
+    string sstr = "15";
     bool isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
+
+    sstr = "1.5045654754";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
+
+    sstr = "10e5045654754";
+    isnum = s.isNumber(sstr);
     cout << sstr << "  isNum? " << isnum << endl;
     getchar();
     return 0;
