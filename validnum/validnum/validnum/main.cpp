@@ -131,14 +131,62 @@ public:
             ret = s.substr(istart, iend - istart + 1);
         }
 
+        
+//        if(s.find("+") != string::npos)
+//        {
+//            char* cs = new char[s.size() + 1];
+//            cs[s.size()] = '\0';
+//            char replaced = false;
+//            for(auto i = 0; i < s.size(); ++i)
+//            {
+//                if(!replaced && s[i] == '+')
+//                {
+//                    cs[i] = '0';
+//                }
+//                else
+//                {
+//                    cs[i] = s[i];
+//                }
+//            }
+//            ret = string(cs);
+//            delete cs;
+//        }
         return ret;
     }
+    
+    string Strip1(string s)
+    {
+        string ret = s;
+        if(s.find("+") != string::npos && s.size() > 1)
+        {
+            char* cs = new char[s.size() + 1];
+            cs[s.size()] = '\0';
+            char replaced = false;
+            for(auto i = 0; i < s.size(); ++i)
+            {
+                if(!replaced && s[i] == '+')
+                {
+                    cs[i] = '0';
+                }
+                else
+                {
+                    cs[i] = s[i];
+                }
+            }
+            ret = string(cs);
+            delete cs;
+        }
+        
+        return ret;
+    }
+    
     int statenum;
     vector<int> transitions;
     set<int> accepts;
     const int INVALID_STATE = -1;
     const char INVALID_CHAR = -128;
 };
+
 
 
 class Solution 
@@ -148,11 +196,12 @@ public:
     {
         static bool initialized = false;
         static DFA normalnumber(3);
-        static DFA negnormalnumber(21);
-/*        static DFA realnumber(8);*/
-        static DFA scinumber(8);
-        static DFA scirealnumber(11);
-        s = scinumber.Strip(s);
+        static DFA normalposnumber(2);
+//        static DFA negnormalnumber(21);
+//        static DFA realnumber(8);
+//        static DFA scinumber(8);
+//        static DFA scirealnumber(11);
+        s = normalnumber.Strip(s);
         if (!initialized)
         {
             //normal number dfa
@@ -161,77 +210,71 @@ public:
             normalnumber.AddTrans(0, 2, EnumChaType_Number);
             normalnumber.AddTrans(2, 2, EnumChaType_Number);
             normalnumber.MarkAccept(2);
-
-            //real number dfa
-//             realnumber.AddTrans(0, 1, EnumChaType_Number);
-//             realnumber.AddTrans(1, 2, EnumChaType_Number);
-//             realnumber.AddTrans(2, 2, EnumChaType_Number);
-//             realnumber.AddTrans(3, 4, EnumChaType_Number);
-//             realnumber.AddTrans(4, 5, EnumChaType_Number);
-//             realnumber.AddTrans(5, 5, EnumChaType_Number);
-//             realnumber.AddTrans(1, 3, '.');
-//             realnumber.AddTrans(2, 3, '.');
-//             realnumber.AddTrans(0, 6, '-');
-//             realnumber.AddTrans(3, 7, '-');
-//             realnumber.AddTrans(6, 1, EnumChaType_Number);
-//             realnumber.AddTrans(7, 4, EnumChaType_Number);
-//             realnumber.MarkAccept(4);
-//             realnumber.MarkAccept(5);
-
-            //sci number dfa
-            scinumber.AddTrans(0, 1, EnumChaType_Number);
-            scinumber.AddTrans(1, 2, EnumChaType_Number);
-            scinumber.AddTrans(2, 2, EnumChaType_Number);
-            scinumber.AddTrans(3, 4, EnumChaType_Number);
-            scinumber.AddTrans(4, 5, EnumChaType_Number);
-            scinumber.AddTrans(5, 5, EnumChaType_Number);
-            scinumber.AddTrans(1, 3, 'e');
-            scinumber.AddTrans(2, 3, 'e');
-            scinumber.AddTrans(0, 6, '-');
-            scinumber.AddTrans(3, 7, '-');
-            scinumber.AddTrans(6, 1, EnumChaType_Number);
-            scinumber.AddTrans(7, 4, EnumChaType_Number);
-            scinumber.MarkAccept(4);
-            scinumber.MarkAccept(5);
-
-
-            //sci real number dfa
-            scirealnumber.AddTrans(0, 1, EnumChaType_Number);
-            scirealnumber.AddTrans(1, 2, EnumChaType_Number);
-            scirealnumber.AddTrans(2, 2, EnumChaType_Number);
-            scirealnumber.AddTrans(3, 4, EnumChaType_Number);
-            scirealnumber.AddTrans(4, 5, EnumChaType_Number);
-            scirealnumber.AddTrans(5, 5, EnumChaType_Number);
-            scirealnumber.AddTrans(0, 3, '.');
-            scirealnumber.AddTrans(1, 3, '.');
-            scirealnumber.AddTrans(2, 3, '.');
-            scirealnumber.AddTrans(6, 3, '.');
-            scirealnumber.AddTrans(0, 6, '-');
-            scirealnumber.AddTrans(3, 7, '-');
-            scirealnumber.AddTrans(6, 1, EnumChaType_Number);
-            scirealnumber.AddTrans(7, 4, EnumChaType_Number);
-            scirealnumber.AddTrans(4, 8, 'e');
-            scirealnumber.AddTrans(5, 8, 'e');
-            scirealnumber.AddTrans(3, 8, 'e');
-            scirealnumber.AddTrans(8, 9, '-');
-            scirealnumber.AddTrans(9, 10, EnumChaType_Number);
-            scirealnumber.AddTrans(8, 10, EnumChaType_Number);
-            scirealnumber.AddTrans(10, 10, EnumChaType_Number);
-            scirealnumber.MarkAccept(10);
-            scirealnumber.MarkAccept(4);
-            scirealnumber.MarkAccept(5);
-            scirealnumber.MarkAccept(3);
-/*            scirealnumber.MarkAccept(5);*/
-
+            
+            normalposnumber.AddTrans(0, 1, EnumChaType_Number);
+            normalposnumber.AddTrans(1, 1, EnumChaType_Number);
+            normalposnumber.MarkAccept(1);
             initialized = true;
         }
 
         bool isnormalnumber = normalnumber.Run(s);
-        //bool isrealnumber = realnumber.Run(s);
-        bool isscinumber = scinumber.Run(s);
-        bool isscirealnumber = scirealnumber.Run(s);
-        if (isnormalnumber || isscinumber || (isscirealnumber && !(s.size() == 1 && s[0] == '.')))
+        bool isscinum = false;
+        bool isreal = false;
+        auto epos1 = s.find('.');
+        if(epos1 != string::npos)
         {
+            string s2 = s.substr(0, epos1);
+            s2 = normalnumber.Strip1(s2);
+            string s3 = s.substr(epos1 + 1, s.size());
+            if(s3.find('.') != string::npos || (s2.empty() && s3.empty()))
+            {
+                isreal = false;
+            }
+            else
+            {
+                isreal = normalnumber.Run(s2) || ((s2.empty() || s2.at(0) == '-') && !s3.empty());
+                isreal = isreal && (normalposnumber.Run(s3) || (s3.empty() && !s2.empty()));
+            }
+        }
+        
+        auto epos = s.find('e');
+        if(epos != string::npos)
+        {
+            string s0 = s.substr(0, epos - 0);
+            string s1 = s.substr(epos + 1, s.size() - epos - 1);
+            s1 = normalnumber.Strip1(s1);
+            if(s1.find('e') != string::npos || (s0.empty() || s1.empty()))
+            {
+                isscinum = false;
+            }
+            else
+            {
+                //isscinum = realnumber.Run(s0);
+                auto epos1 = s0.find('.');
+                if(epos1 != string::npos)
+                {
+                    string s2 = s0.substr(0, epos1);
+                    s2 = normalnumber.Strip1(s2);
+                    string s3 = s0.substr(epos1 + 1, s0.size());
+                    if(s3.find('.') != string::npos || (s2.empty() && s3.empty()))
+                    {
+                        isscinum = false;
+                    }
+                    else
+                    {
+                        isscinum = normalnumber.Run(s2) || ((s2.empty() || s2.at(0) == '-') && !s3.empty());
+                        isscinum = isscinum && (normalposnumber.Run(s3) || (s3.empty() && !s2.empty()));
+                    }
+                }
+                
+                isscinum = isscinum || normalnumber.Run(s0);
+                isscinum = isscinum && normalnumber.Run(s1);
+            }
+        }
+
+        if (isnormalnumber || isscinum || isreal)
+        {
+            
             return true;
         }
         return false;
@@ -254,7 +297,7 @@ int main()
     ""
     */
     Solution s;
-    string sstr = " -15";
+    string sstr = "4e+";
     bool isnum = s.isNumber(sstr);
     cout << sstr << "  isNum? " << isnum << endl;
 
@@ -277,6 +320,36 @@ int main()
     sstr = "-10.0e-5045654754.0";
     isnum = s.isNumber(sstr);
     cout << sstr << "  isNum? " << isnum << endl;
+    
+    sstr = "-.3";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
+    
+    sstr = "-3.";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
+    
+    sstr = "-3.e1";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
+    sstr = "-3.e1.0";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
+    
+    sstr = "-3.e-1";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
+    
+    sstr = "+3.e-1";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
+    
+    sstr = "+3.e+1";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
+    sstr = "+3";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
 
     DFA a(1);
     string oris = " 123 ";
@@ -285,3 +358,23 @@ int main()
     getchar();
     return 0;
 }
+
+
+/*
+"-.3"
+".3"
+"3."
+"-3."
+"."
+" ."
+". "
+".e1"
+".-4"
+"-.4"
+"+.8"
+"+.8"
+"+2"
+"+2e+8"
+"+2e-7"
+"1 ."
+*/
