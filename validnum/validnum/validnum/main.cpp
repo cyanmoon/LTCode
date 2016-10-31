@@ -71,7 +71,6 @@ public:
 
     bool Run(string s)
     {
-        s = Strip(s);
         if (s.empty())
         {
             return false;
@@ -150,8 +149,10 @@ public:
         static bool initialized = false;
         static DFA normalnumber(3);
         static DFA negnormalnumber(21);
-        static  DFA realnumber(8);
-        static  DFA scinumber(8);
+/*        static DFA realnumber(8);*/
+        static DFA scinumber(8);
+        static DFA scirealnumber(11);
+        s = scinumber.Strip(s);
         if (!initialized)
         {
             //normal number dfa
@@ -162,20 +163,20 @@ public:
             normalnumber.MarkAccept(2);
 
             //real number dfa
-            realnumber.AddTrans(0, 1, EnumChaType_Number);
-            realnumber.AddTrans(1, 2, EnumChaType_Number);
-            realnumber.AddTrans(2, 2, EnumChaType_Number);
-            realnumber.AddTrans(3, 4, EnumChaType_Number);
-            realnumber.AddTrans(4, 5, EnumChaType_Number);
-            realnumber.AddTrans(5, 5, EnumChaType_Number);
-            realnumber.AddTrans(1, 3, '.');
-            realnumber.AddTrans(2, 3, '.');
-            realnumber.AddTrans(0, 6, '-');
-            realnumber.AddTrans(3, 7, '-');
-            realnumber.AddTrans(6, 1, EnumChaType_Number);
-            realnumber.AddTrans(7, 4, EnumChaType_Number);
-            realnumber.MarkAccept(4);
-            realnumber.MarkAccept(5);
+//             realnumber.AddTrans(0, 1, EnumChaType_Number);
+//             realnumber.AddTrans(1, 2, EnumChaType_Number);
+//             realnumber.AddTrans(2, 2, EnumChaType_Number);
+//             realnumber.AddTrans(3, 4, EnumChaType_Number);
+//             realnumber.AddTrans(4, 5, EnumChaType_Number);
+//             realnumber.AddTrans(5, 5, EnumChaType_Number);
+//             realnumber.AddTrans(1, 3, '.');
+//             realnumber.AddTrans(2, 3, '.');
+//             realnumber.AddTrans(0, 6, '-');
+//             realnumber.AddTrans(3, 7, '-');
+//             realnumber.AddTrans(6, 1, EnumChaType_Number);
+//             realnumber.AddTrans(7, 4, EnumChaType_Number);
+//             realnumber.MarkAccept(4);
+//             realnumber.MarkAccept(5);
 
             //sci number dfa
             scinumber.AddTrans(0, 1, EnumChaType_Number);
@@ -193,13 +194,43 @@ public:
             scinumber.MarkAccept(4);
             scinumber.MarkAccept(5);
 
+
+            //sci real number dfa
+            scirealnumber.AddTrans(0, 1, EnumChaType_Number);
+            scirealnumber.AddTrans(1, 2, EnumChaType_Number);
+            scirealnumber.AddTrans(2, 2, EnumChaType_Number);
+            scirealnumber.AddTrans(3, 4, EnumChaType_Number);
+            scirealnumber.AddTrans(4, 5, EnumChaType_Number);
+            scirealnumber.AddTrans(5, 5, EnumChaType_Number);
+            scirealnumber.AddTrans(0, 3, '.');
+            scirealnumber.AddTrans(1, 3, '.');
+            scirealnumber.AddTrans(2, 3, '.');
+            scirealnumber.AddTrans(6, 3, '.');
+            scirealnumber.AddTrans(0, 6, '-');
+            scirealnumber.AddTrans(3, 7, '-');
+            scirealnumber.AddTrans(6, 1, EnumChaType_Number);
+            scirealnumber.AddTrans(7, 4, EnumChaType_Number);
+            scirealnumber.AddTrans(4, 8, 'e');
+            scirealnumber.AddTrans(5, 8, 'e');
+            scirealnumber.AddTrans(3, 8, 'e');
+            scirealnumber.AddTrans(8, 9, '-');
+            scirealnumber.AddTrans(9, 10, EnumChaType_Number);
+            scirealnumber.AddTrans(8, 10, EnumChaType_Number);
+            scirealnumber.AddTrans(10, 10, EnumChaType_Number);
+            scirealnumber.MarkAccept(10);
+            scirealnumber.MarkAccept(4);
+            scirealnumber.MarkAccept(5);
+            scirealnumber.MarkAccept(3);
+/*            scirealnumber.MarkAccept(5);*/
+
             initialized = true;
         }
 
         bool isnormalnumber = normalnumber.Run(s);
-        bool isrealnumber = realnumber.Run(s);
+        //bool isrealnumber = realnumber.Run(s);
         bool isscinumber = scinumber.Run(s);
-        if (isnormalnumber || isrealnumber || isscinumber)
+        bool isscirealnumber = scirealnumber.Run(s);
+        if (isnormalnumber || isscinumber || (isscirealnumber && !(s.size() == 1 && s[0] == '.')))
         {
             return true;
         }
@@ -211,6 +242,17 @@ public:
 
 int main()
 {
+    /* Test Examples
+    "-.3"
+    ".3"
+    "3."
+    "-3."
+    "."
+    " ."
+    ". "
+    ".e1"
+    ""
+    */
     Solution s;
     string sstr = " -15";
     bool isnum = s.isNumber(sstr);
@@ -223,11 +265,22 @@ int main()
     sstr = "10e-5045654754";
     isnum = s.isNumber(sstr);
     cout << sstr << "  isNum? " << isnum << endl;
+
+    sstr = "10.0e-5045654754";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
     
+    sstr = "-10.0e-5045654754";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
+
+    sstr = "-10.0e-5045654754.0";
+    isnum = s.isNumber(sstr);
+    cout << sstr << "  isNum? " << isnum << endl;
 
     DFA a(1);
     string oris = " 123 ";
-    oris = "   ";
+    oris = "   .";
     cout << "oris:_" << oris << "_stripped:_" << a.Strip(oris) << "_" << endl;
     getchar();
     return 0;
