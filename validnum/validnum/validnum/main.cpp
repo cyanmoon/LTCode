@@ -107,27 +107,29 @@ public:
             int iend = s.size();
             auto i = 0;
             auto j = s.size() - 1;
-            while (i < s.size() && j >= 0 && i < j)
+            while (i < s.size() && j >= 0 && i <= j)
             {
                 bool hasblank = false;
-                if (s.at(i) == ' ' && i + 1 < s.size())
+                if (s.at(i) == ' ')
                 {
                     ++i;
                     hasblank = true;
                 }
 
-                if (s.at(j) == ' ' && j - 1 >= 0)
+                if (s.at(j) == ' ')
                 {
                     --j;
                     hasblank = true;
                 }
 
+                istart = i;
+                iend = j;
                 if (!hasblank)
                 {
                     break;;
                 }
             }
-            ret = s.substr(istart, iend - istart);
+            ret = s.substr(istart, iend - istart + 1);
         }
 
         return ret;
@@ -146,27 +148,18 @@ public:
     bool isNumber(string s) 
     {
         static bool initialized = false;
-        static DFA normalnumber(20);
-        static  DFA realnumber(6);
-        static  DFA scinumber(10);
+        static DFA normalnumber(3);
+        static DFA negnormalnumber(21);
+        static  DFA realnumber(8);
+        static  DFA scinumber(8);
         if (!initialized)
         {
             //normal number dfa
-            for (int i = 1; i <= 9; ++i)
-            {
-                normalnumber.AddTrans(0, i, '0' + i);
-                normalnumber.MarkAccept(i);
-            }
-            
-            for (int i = 1; i <= 19; ++i)
-            {
-                normalnumber.MarkAccept(i);
-                for (int j = 10; j <= 19; ++j)
-                {
-                    normalnumber.AddTrans(i, j, '0' + j - 10);
-                }
-            }
-
+            normalnumber.AddTrans(0, 1, '-');
+            normalnumber.AddTrans(1, 2, EnumChaType_Number);
+            normalnumber.AddTrans(0, 2, EnumChaType_Number);
+            normalnumber.AddTrans(2, 2, EnumChaType_Number);
+            normalnumber.MarkAccept(2);
 
             //real number dfa
             realnumber.AddTrans(0, 1, EnumChaType_Number);
@@ -177,6 +170,10 @@ public:
             realnumber.AddTrans(5, 5, EnumChaType_Number);
             realnumber.AddTrans(1, 3, '.');
             realnumber.AddTrans(2, 3, '.');
+            realnumber.AddTrans(0, 6, '-');
+            realnumber.AddTrans(3, 7, '-');
+            realnumber.AddTrans(6, 1, EnumChaType_Number);
+            realnumber.AddTrans(7, 4, EnumChaType_Number);
             realnumber.MarkAccept(4);
             realnumber.MarkAccept(5);
 
@@ -189,6 +186,10 @@ public:
             scinumber.AddTrans(5, 5, EnumChaType_Number);
             scinumber.AddTrans(1, 3, 'e');
             scinumber.AddTrans(2, 3, 'e');
+            scinumber.AddTrans(0, 6, '-');
+            scinumber.AddTrans(3, 7, '-');
+            scinumber.AddTrans(6, 1, EnumChaType_Number);
+            scinumber.AddTrans(7, 4, EnumChaType_Number);
             scinumber.MarkAccept(4);
             scinumber.MarkAccept(5);
 
@@ -211,17 +212,23 @@ public:
 int main()
 {
     Solution s;
-    string sstr = "15";
+    string sstr = " -15";
     bool isnum = s.isNumber(sstr);
     cout << sstr << "  isNum? " << isnum << endl;
 
-    sstr = "1.5045654754";
+    sstr = "-1.5045654754";
     isnum = s.isNumber(sstr);
     cout << sstr << "  isNum? " << isnum << endl;
 
-    sstr = "10e5045654754";
+    sstr = "10e-5045654754";
     isnum = s.isNumber(sstr);
     cout << sstr << "  isNum? " << isnum << endl;
+    
+
+    DFA a(1);
+    string oris = " 123 ";
+    oris = "   ";
+    cout << "oris:_" << oris << "_stripped:_" << a.Strip(oris) << "_" << endl;
     getchar();
     return 0;
 }
