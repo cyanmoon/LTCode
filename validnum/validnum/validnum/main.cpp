@@ -285,16 +285,22 @@ public:
 
         //normal number
         bool isnormalnumber = normalnumber.Run(s);
-        
+        if(isnormalnumber)
+        {
+            return true;
+        }
         
         //real number
         bool isreal = isRealNumber(s, normalnumber);
+        if(isreal)
+        {
+            return true;
+        }
         
         //sci number
         bool isscinum = isScinum(s, normalnumber);
-        if (isnormalnumber || isreal|| isscinum)
+        if (isscinum)
         {
-            
             return true;
         }
         return false;
