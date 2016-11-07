@@ -2,3 +2,9 @@ Debug/
 Release/
 *.exe
 *.tlog
+*.sdf
+*.sln
+*.suo
+*.opensdf
+*.obj
+
