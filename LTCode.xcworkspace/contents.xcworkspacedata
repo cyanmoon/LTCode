@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:wordladder_xcode/wordladder_xcode.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:validnum_xcode/validnum_xcode.xcodeproj">
    </FileRef>
 </Workspace>
