@@ -25,11 +25,10 @@ public:
 
     vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) 
     {
-        
         auto listSize = wordList.size();
         m_edges.resize(listSize * listSize);
-        vector<set<unsigned> > formerIds;
-        formerIds.resize(listSize);
+        vector<set<unsigned> > nextIds;
+        nextIds.resize(listSize);
         unsigned int index = 0;
         for (auto i = wordList.cbegin(); i != wordList.cend(); ++i)
         {
@@ -53,8 +52,8 @@ public:
                 if (canTransTo(m_words[i], m_words[j]))
                 {
                     setDis(i, j, 1, listSize);
-                    formerIds[i].insert(j);
-                    formerIds[j].insert(i);
+                    nextIds[i].insert(j);
+                    nextIds[j].insert(i);
                 }
             }
         }
@@ -65,9 +64,7 @@ public:
         auto endIndex = m_str2id[endWord];
         if (startIndex == endIndex)
         {
-            vector<string> v;
             v.push_back(beginWord);
-            vector<vector <string> > vl;
             vl.push_back(v);
             return vl;
         }
@@ -98,7 +95,7 @@ public:
                         if (dissi != 0 && disij != 0)
                         {
                             setDis(startIndex, j, dissi + disij, listSize);
-                            formerIds[j].insert(i);
+                            nextIds[i].insert(j);
                             changed = true;
                         }
                     }
@@ -107,13 +104,13 @@ public:
                         if (dissi != 0 && disij != 0 && disij + dissi < dissj)
                         {
                             setDis(startIndex, j, dissi + disij, listSize);
-                            formerIds[j].clear();
-                            formerIds[j].insert(i);
+                            nextIds[i].clear();
+                            nextIds[i].insert(j);
                             changed = true;
                         }
-                        else if (dissi != 0 && disij != 0 && disij + dissi == dissj && formerIds[j].find(i) == formerIds[j].cend())
+                        else if (dissi != 0 && disij != 0 && disij + dissi == dissj && nextIds[i].find(j) == nextIds[i].cend())
                         {
-                            formerIds[j].insert(i);
+                            nextIds[i].insert(j);
                             changed = true;
                         }
                     }
@@ -125,9 +122,71 @@ public:
                 break;
             }
         }
+        
+        
 
         cout << "."<< endl;
+        map<unsigned, unsigned> processed;
+        processed[startIndex] = 1;
+        auto paths = getPathsTo(startIndex, endIndex, processed, nextIds);
+        for(auto vecItor = paths.cbegin(); vecItor != paths.cend(); ++vecItor)
+        {
+            vector<string> v;
+            for(auto idItor = vecItor->cbegin(); idItor != vecItor->cend(); ++idItor)
+            {
+                v.push_back(m_words[*idItor]);
+            }
+            vl.push_back(v);
+        }
         return vl;
+    }
+    
+    vector<vector<unsigned> > getPathsTo(unsigned ufrom, unsigned uto, map<unsigned, unsigned> processed, vector<set<unsigned> >& nextIds)
+    {
+        vector<unsigned> v;
+        vector<vector<unsigned> > vv;
+        if(ufrom == uto)
+        {
+            v.push_back(ufrom);
+            vv.push_back(v);
+            return vv;
+        }
+        
+        set<unsigned> connectTo = nextIds[ufrom];
+        for(auto i = connectTo.cbegin(); i != connectTo.cend(); ++i)
+        {
+            if(processed.find(*i) == processed.cend())
+            {
+                processed[*i] = 1;
+                if(uto == *i)
+                {
+                    v.push_back(ufrom);
+                    v.push_back(uto);
+                    vv.push_back(v);
+                }
+                else
+                {
+                    auto l = getPathsTo(*i, uto,  processed, nextIds);
+                    if(l.size() > 0)
+                    {
+                        for(auto vecItor = l.cbegin(); vecItor != l.cend(); ++vecItor)
+                        {
+                            vector<unsigned> vec;
+                            vec.push_back(ufrom);
+                            vec.insert(vec.cend(), vecItor->cbegin(), vecItor->cend());
+                            vv.push_back(vec);
+                        }
+                    }
+
+                }
+            }
+            else
+            {
+                ++processed[*i];
+            }
+        }
+        
+        return vv;
     }
 
     bool canTransTo(string beginWord, string endWord)
@@ -169,7 +228,16 @@ void Test(string from, string to, vector<string> testsample, Solution& solution)
         s.insert(*i);
     }
 
-    solution.findLadders(from, to, s);
+    auto paths = solution.findLadders(from, to, s);
+    cout<<"Answer " << from << " --> " << to << ":" << endl;
+    for(auto vecItor = paths.cbegin(); vecItor != paths.cend(); ++vecItor)
+    {
+        for(auto strItor = vecItor->cbegin(); strItor != vecItor->cend(); ++strItor)
+        {
+            cout << *strItor << " -> ";
+        }
+        cout<< "$" << endl;
+    }
 }
 
 int main(int argc, char **argv)
