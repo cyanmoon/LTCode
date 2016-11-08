@@ -5,27 +5,59 @@
 #include <unordered_set>
 #include <set>
 #include <stack>
+#include <queue>
 using namespace std;
 
 class Solution {
 public:
-    inline unsigned getDis(unsigned i, unsigned j, unsigned sizel)
+    inline unsigned getDis(unsigned i, unsigned j)
     {
-        unsigned index = i * sizel + j;
+        unsigned index = i * m_listsize + j;
         return m_edges[index];
     }
 
-    inline void setDis(unsigned i, unsigned j, unsigned val, unsigned sizel)
+    inline void setDis(unsigned i, unsigned j, unsigned val)
     {
-        unsigned index = i * sizel + j;
+        unsigned index = i * m_listsize +j;
         m_edges[index] = val;
-        index = j * sizel + i;
+        index = j * m_listsize + i;
         m_edges[index] = val;
+    }
+
+    inline unsigned edgeHash(unsigned i, unsigned j)
+    {
+        if (i < j)
+        {
+            return i * 33 + j;
+        }
+        else
+        {
+            return j * 33 + i;
+        }
+    }
+
+    inline bool edgeProcessed(unsigned i, unsigned j, set<unsigned>& processed)
+    {
+        return processed.find(edgeHash(i, j)) != processed.cend();
+    }
+
+    inline bool nodeProcessed(unsigned node, set<unsigned>& processed)
+    {
+        for (auto i = 0; i < m_listsize; ++i)
+        {
+            if (getDis(node, i) > 0 && !edgeProcessed(node, i, processed))
+            {
+                return false;
+            }
+        } 
+
+        return true;
     }
 
     vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) 
     {
         auto listSize = wordList.size();
+        m_listsize = listSize;
         m_edges.resize(listSize * listSize);
         vector<set<unsigned> > nextIds;
         nextIds.resize(listSize);
@@ -51,7 +83,7 @@ public:
 
                 if (canTransTo(m_words[i], m_words[j]))
                 {
-                    setDis(i, j, 1, listSize);
+                    setDis(i, j, 1);
                     nextIds[i].insert(j);
                     nextIds[j].insert(i);
                 }
@@ -68,7 +100,40 @@ public:
             vl.push_back(v);
             return vl;
         }
+        
+        //new solution
+        set<unsigned> processedEdges;
+        queue<unsigned> nodes;
+        nodes.push(startIndex);
+        map<unsigned, unsigned> nodeLevel;
+        nodeLevel[startIndex] = 0;
+        while (nodes.size() != 0)
+        {
+            auto curnode = nodes.front();
+            if (nodeProcessed(curnode, processedEdges))
+            {
+                nodes.pop();
+                continue;
+            }
 
+            for (auto i = 0; i < m_listsize; ++i)
+            {
+                auto ehash = edgeHash(curnode, i);
+                if (processedEdges.find(ehash) == processedEdges.cend() && getDis(curnode, i) > 0)
+                {
+                    nodes.push(i);
+                    processedEdges.insert(ehash);
+                    nodeLevel[i] = nodeLevel[curnode] + 1;
+                }
+            }
+
+            if (nodeProcessed(curnode, processedEdges))
+            {
+                nodes.pop();
+            }
+        }
+
+        //old solution
         bool changed = false;
         while (true)
         {
@@ -87,14 +152,14 @@ public:
                         continue;
                     }
 
-                    auto dissj = getDis(startIndex, j, listSize);
-                    auto dissi = getDis(startIndex, i, listSize);
-                    auto disij = getDis(i, j, listSize);
+                    auto dissj = getDis(startIndex, j);
+                    auto dissi = getDis(startIndex, i);
+                    auto disij = getDis(i, j);
                     if (dissj == 0)
                     {
                         if (dissi != 0 && disij != 0)
                         {
-                            setDis(startIndex, j, dissi + disij, listSize);
+                            setDis(startIndex, j, dissi + disij);
                             nextIds[i].insert(j);
                             changed = true;
                         }
@@ -103,7 +168,7 @@ public:
                     {
                         if (dissi != 0 && disij != 0 && disij + dissi < dissj)
                         {
-                            setDis(startIndex, j, dissi + disij, listSize);
+                            setDis(startIndex, j, dissi + disij);
                             nextIds[i].clear();
                             nextIds[i].insert(j);
                             changed = true;
@@ -225,6 +290,7 @@ public:
     }
 
 private:
+    unsigned m_listsize;
     vector<unsigned> m_edges;
     map<unsigned, string> m_id2str;
     map<string, unsigned> m_str2id;
@@ -257,7 +323,7 @@ int main(int argc, char **argv)
     Solution solution;
     vector<string> s;
     //Test case 1
-    /*
+    
     s.push_back("hit");
     s.push_back("hot");
     s.push_back("lot");
@@ -265,9 +331,10 @@ int main(int argc, char **argv)
     s.push_back("lis");
     s.push_back("kis");
     Test(string("hit"), string("kis"), s, solution);
-    */
+    
 
     //test case 2
+    /*
     s.push_back("si");
     s.push_back("go");
     s.push_back("se");
@@ -364,6 +431,7 @@ int main(int argc, char **argv)
     s.push_back("sq");
     s.push_back("ye");
     Test(string("qa"), string("sq"), s, solution);
+    */
     getchar();
     return 0;
 }
